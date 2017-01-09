@@ -109,4 +109,4 @@ app.put('/items/:id', jsonParser, function(request, response){
   }
 })
 
-app.listen(8000);
+app.listen(process.env.PORT || 8080);
