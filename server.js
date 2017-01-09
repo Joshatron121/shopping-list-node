@@ -5,7 +5,7 @@ var jsonParser = bodyParser.json();
 
 var Storage = {
   add: function(name, user) {
-    var item = {name: name, owner: user, id: this.setId};
+    var item = {name: name, id: this.setId};
     this.items.push(item);
     this.setId += 1;
     return item;
@@ -36,16 +36,6 @@ var Storage = {
       status = 200;
     }
     return status
-  },
-  user: function(requestedUser){
-    var usersItems = []
-    for(var i = 0; i < this.items.length; i++){
-      if(this.items[i].owner == requestedUser) {
-        usersItems.push(this.items[i])
-      }
-    }
-    console.log(usersItems)
-    return usersItems;
   }
 };
 
@@ -58,11 +48,11 @@ var createStorage = function() {
 
 var storage = createStorage();
 
-storage.add('Broad beans', 'Joe');
-storage.add('Tomatoes', 'Frank');
-storage.add('Peppers', 'Sarah');
-storage.add('Bananas', 'Joe');
-storage.add('Tacos', 'John');
+storage.add('Broad beans');
+storage.add('Tomatoes');
+storage.add('Peppers');
+storage.add('Bananas');
+storage.add('Tacos');
 
 var app = express();
 app.use(express.static('public'));
@@ -71,20 +61,11 @@ app.get('/items', function(request, response) {
   response.json(storage.items);
 });
 
-app.get('/users/:username', function(request, response){
-  requestedUser = request.params.username
-  console.log(requestedUser)
-  var items = storage.user(requestedUser)
-  console.log(items)
-  if(items == []) {
-    response.sendStatus(400);
-  } else {
-    response.json(items);
-  }
-})
-
 app.post('/items', jsonParser, function(request, response){
   if (!('name' in request.body)){
+    return response.sendStatus(400)
+  }
+  if(request.body.name == ''){
     return response.sendStatus(400)
   }
 
@@ -101,12 +82,20 @@ app.delete('/items/:id', function(request, response){
 app.put('/items/:id', jsonParser, function(request, response){
   var requestId = request.params.id;
   var requestName = request.body.name
-  if(('id' in request.body) == requestId) {
-    storage.put(requestId, requestName);
-    return response.sendStatus(200)
-  } else {
+  if (!('name' in request.body)){
     return response.sendStatus(400)
+  }
+  if (request.body.id == '' || requestId == null) {
+    return response.sendStatus(400);
+  } else if (request.body.id == requestId) {
+    storage.put(request.body.id, requestName);
+    return response.sendStatus(200);
+  } else {
+    return response.sendStatus(400);
   }
 })
 
-app.listen(process.env.PORT || 8080);
+app.listen(8080);
+
+exports.app = app;
+exports.storage = storage;
